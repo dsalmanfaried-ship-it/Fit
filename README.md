@@ -1,59 +1,67 @@
-# FitMate AI Pro — تحديث الواجهة واللغة والاتصال أونلاين
+# FitMate AI — Flutter + GitHub Pages + Supabase
 
-## ما الجديد؟
-- انتقالات متحركة بين الشاشات، وتأثيرات ظهور للكروت والأرقام.
-- تصميم متجاوب للموبايلات الصغيرة والكبيرة والتابلت.
-- تبديل لغة عربي/إنجليزي من زر الترجمة في الصفحة الرئيسية، مع RTL/LTR.
-- اختيار لغة التعرف على الكلام حسب لغة التطبيق: `ar_EG` أو `en_US`.
-- محلل صوت يقبل الأرقام العربية وصيغاً مصرية مثل «عملت ١٢ عدة بوزن ٤٠ كيلو» وصيغة إنجليزية مثل “12 reps at 40 kg”.
-- طبقة REST اختيارية لمزامنة البيانات وجلب كتالوج التمارين أونلاين.
-- يظل التخزين المحلي SQLite أساسياً حتى لا تضيع البيانات عند انقطاع الإنترنت.
+تطبيق لتسجيل مجموعات التمرين ومتابعة الأوزان والعدات وحجم التدريب، مع واجهة عربي/إنجليزي، إدخال صوتي، مؤقت راحة، وحفظ محلي. يعمل كتطبيق Android/iOS بعد توليد ملفات المنصة، وكـ Web App يمكن نشره تلقائياً على GitHub Pages.
 
-## التشغيل
-يتطلب Flutter stable وDart 3.3+.
+## 1) تشغيل نسخة الويب على GitHub Pages
+
+1. ارفع محتويات المشروع إلى مستودع GitHub، واجعل اسم الفرع `main` أو `master`.
+2. من المستودع افتح **Settings → Pages → Build and deployment** واختر **GitHub Actions** كمصدر.
+3. افتح **Settings → Secrets and variables → Actions** وأضف (اختياري للمزامنة السحابية):
+   - `SUPABASE_URL`: رابط مشروع Supabase.
+   - `SUPABASE_ANON_KEY`: مفتاح `anon/public` فقط.
+4. ادفع أي commit إلى `main`؛ الـ workflow في `.github/workflows/deploy-pages.yml` سينفّذ `flutter pub get` و`flutter analyze` و`flutter test` ثم يبني وينشر الويب.
+5. رابط الموقع يظهر في **Settings → Pages** بعد نجاح الـ workflow.
+
+> لا تفتح `index.html` مباشرة من جهازك. Flutter Web يحتاج ناتج `flutter build web` وخادم HTTP. GitHub Actions يتولى البناء والنشر.
+
+## 2) تشغيل محلياً
+
+المتطلبات: Flutter stable وDart 3.3+.
 
 ```bash
-flutter create --platforms=android .
 flutter pub get
 flutter analyze
 flutter test
+flutter run -d chrome
+```
+
+لـ Android، أنشئ ملفات المنصة مرة واحدة إذا لم تكن موجودة:
+
+```bash
+flutter create --platforms=android .
 flutter run
 ```
 
-لو عندك مجلد Android موجود بالفعل، لا تعِد إنشاءه؛ شغّل `flutter pub get` فقط.
+ولبناء APK:
 
-## صلاحية الميكروفون
-أضف إلى `android/app/src/main/AndroidManifest.xml` قبل `<application>`:
-```xml
-<uses-permission android:name="android.permission.RECORD_AUDIO"/>
-```
-وأضف داخل `<manifest>`:
-```xml
-<queries>
-  <intent>
-    <action android:name="android.speech.RecognitionService"/>
-  </intent>
-</queries>
-```
-
-## تفعيل اتصال السيرفر
-التطبيق يحتوي على عميل REST اختياري في `lib/services/online_service.dart`.
-شغّله بعنوان API الخاص بك:
 ```bash
-flutter run --dart-define=FITMATE_API_URL=https://YOUR_API_HOST
+flutter build apk --release
 ```
-السيرفر يحتاج نقطتين:
-- `POST /workouts/sync` يستقبل JSON بالشكل `{ "workouts": [...] }` ويربطه بالمستخدم بعد تسجيل الدخول.
-- `GET /exercises` يرجع JSON array لكتالوج التمارين.
 
-**تنبيه أمان:** لا تضع مفاتيح سرية أو مفاتيح قاعدة بيانات إدارية داخل تطبيق الموبايل. لازم السيرفر يتحقق من هوية المستخدم وصلاحياته. حالياً مزامنة REST مجرد تكامل جاهز للربط وليست خدمة سحابية مفعّلة تلقائياً، ولا يوجد تسجيل دخول أو حسابات مستخدمين مضافة بعد.
+## 3) إعداد Supabase للمزامنة
 
-## اللهجة المصرية والتعرف على الصوت
-اختيار `ar_EG` يطلب من خدمة النظام التعرف على الكلام باللهجة/اللغة المصرية إذا كانت متاحة على الجهاز. النتيجة تعتمد على محرك Google أو خدمة التعرف المثبتة، وقد تحتاج اتصال إنترنت أو تنزيل حزمة اللغة. التطبيق لا يضمن فهم كل تعبير عامي؛ جرّب جملة واضحة مثل:
-- «عملت ١٢ عدة بوزن ٤٠ كيلو»
-- “12 reps at 40 kg”
+1. أنشئ مشروعاً في Supabase.
+2. من **Project Settings → API** انسخ Project URL و`anon/public` key.
+3. نفّذ `supabase/schema.sql` من **SQL Editor**.
+4. محلياً شغّل التطبيق بالمفاتيح:
 
-## حدود النسخة
-- اسم الأغنية أو البودكاست ومدته ما زال إدخالاً يدوياً؛ لا يتم تسجيل صوت تطبيقات أخرى أو التعرف التلقائي على الموسيقى.
-- لا يوجد تسجيل حسابات/مستخدمين أو مزامنة سحابية فعلية قبل توفير API آمن.
-- لم يتم بناء APK أو اختبار المشروع على جهاز Android ضمن بيئة إنشاء الملفات؛ نفّذ `flutter analyze`, `flutter test` و`flutter build apk` قبل النشر.
+```bash
+flutter run --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co --dart-define=SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+5. على GitHub Pages أضف القيمتين كـ Actions Secrets كما في الخطوة الأولى، ثم أعد تشغيل الـ workflow.
+6. من التطبيق أنشئ حساباً أو سجّل الدخول، وبعدها استخدم زر السحابة لرفع سجلات الجهاز.
+
+**مهم:** لا تضع `service_role` key في التطبيق أو GitHub Pages؛ استخدم `anon/public` فقط مع سياسات RLS الموجودة في SQL.
+
+## 4) التخزين والتوافق
+
+- Android/iOS: قاعدة SQLite محلية.
+- Web: تخزين محلي في المتصفح عبر `shared_preferences` (ويبني على Local Storage/التخزين الذي توفره المنصة). البيانات المحلية في المتصفح لا تنتقل تلقائياً بين الأجهزة أو المتصفحات؛ استخدم حساب Supabase والنسخ الاحتياطي.
+- المزامنة الحالية ترفع سجلات الجهاز إلى Supabase. تنزيل السجلات السحابية ودمجها تلقائياً على جهاز جديد غير مفعّل بعد.
+- التعرف الصوتي في الويب يعتمد دعم المتصفح لخدمة Web Speech؛ الأفضل تجربته على Chrome مع إذن الميكروفون وHTTPS. دعم `ar_EG` يختلف حسب المتصفح ونظام التشغيل.
+- اسم الموسيقى/البودكاست ومدة الاستماع يتم إدخالهما يدوياً؛ التطبيق لا يلتقط صوت تطبيقات أخرى.
+
+## 5) الأمان
+
+جدول `workouts` محمي بسياسات Row Level Security في `supabase/schema.sql`. لا تعطّل RLS ولا تستخدم مفتاح `service_role` في تطبيق العميل.
