@@ -11,19 +11,21 @@ class VoiceParser {
     for (var i = 0; i < arabic.length; i++) {
       result = result.replaceAll(arabic[i], '$i');
     }
-    return result.replaceAll('٫', '.').replaceAll('،', ',');
+    return result
+      .replaceAll('٫', '.').replaceAll('،', ',')
+      .replaceAll('كيلو', 'kg').replaceAll('كجم', 'kg')
+      .replaceAll('عدة', 'reps').replaceAll('عدات', 'reps')
+      .replaceAll('وزن', 'weight').replaceAll('عملت', '');
   }
 
-  /// Accepts examples such as "12 reps 40 kg", "12 عدة وزن 40 كيلو".
+  /// Examples: "عملت ١٢ عدة بوزن ٤٠ كيلو", "12 reps at 40 kg".
   static ParsedSet? parse(String speech) {
     final text = normalizeDigits(speech.toLowerCase());
-    final numbers = RegExp(r'\d+(?:[.,]\d+)?')
-        .allMatches(text)
-        .map((m) => m.group(0)!.replaceAll(',', '.'))
-        .toList();
-    if (numbers.length < 2) return null;
-    final reps = double.tryParse(numbers[0])?.round();
-    final weight = double.tryParse(numbers[1]);
+    final nums = RegExp(r'\d+(?:[.,]\d+)?').allMatches(text)
+      .map((m) => m.group(0)!.replaceAll(',', '.')).toList();
+    if (nums.length < 2) return null;
+    final reps = double.tryParse(nums[0])?.round();
+    final weight = double.tryParse(nums[1]);
     if (reps == null || weight == null || reps < 1 || weight < 0) return null;
     return ParsedSet(reps, weight);
   }

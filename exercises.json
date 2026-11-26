@@ -1,127 +1,116 @@
 [
   {
     "name": "Bench Press",
+    "name_ar": "بنش برس",
     "muscle": "Chest",
-    "equipment": "Barbell"
+    "muscle_ar": "صدر"
   },
   {
     "name": "Incline Dumbbell Press",
+    "name_ar": "بنش مائل دمبل",
     "muscle": "Chest",
-    "equipment": "Dumbbell"
+    "muscle_ar": "صدر"
   },
   {
     "name": "Chest Fly",
+    "name_ar": "تفتيح صدر",
     "muscle": "Chest",
-    "equipment": "Machine"
+    "muscle_ar": "صدر"
   },
   {
     "name": "Push Up",
+    "name_ar": "ضغط",
     "muscle": "Chest",
-    "equipment": "Bodyweight"
+    "muscle_ar": "صدر"
   },
   {
     "name": "Lat Pulldown",
+    "name_ar": "سحب عالي",
     "muscle": "Back",
-    "equipment": "Cable"
+    "muscle_ar": "ظهر"
   },
   {
     "name": "Seated Cable Row",
+    "name_ar": "سحب أرضي",
     "muscle": "Back",
-    "equipment": "Cable"
+    "muscle_ar": "ظهر"
   },
   {
     "name": "Deadlift",
+    "name_ar": "ديدليفت",
     "muscle": "Back",
-    "equipment": "Barbell"
+    "muscle_ar": "ظهر"
   },
   {
     "name": "Pull Up",
+    "name_ar": "عقلة",
     "muscle": "Back",
-    "equipment": "Bodyweight"
+    "muscle_ar": "ظهر"
   },
   {
     "name": "Shoulder Press",
+    "name_ar": "ضغط كتف",
     "muscle": "Shoulders",
-    "equipment": "Dumbbell"
+    "muscle_ar": "كتف"
   },
   {
     "name": "Lateral Raise",
+    "name_ar": "رفرفة جانبي",
     "muscle": "Shoulders",
-    "equipment": "Dumbbell"
+    "muscle_ar": "كتف"
   },
   {
     "name": "Face Pull",
+    "name_ar": "سحب للوجه",
     "muscle": "Shoulders",
-    "equipment": "Cable"
+    "muscle_ar": "كتف"
   },
   {
     "name": "Barbell Curl",
+    "name_ar": "بايسبس بار",
     "muscle": "Biceps",
-    "equipment": "Barbell"
+    "muscle_ar": "بايسبس"
   },
   {
     "name": "Hammer Curl",
+    "name_ar": "هامر كيرل",
     "muscle": "Biceps",
-    "equipment": "Dumbbell"
+    "muscle_ar": "بايسبس"
   },
   {
     "name": "Triceps Pushdown",
+    "name_ar": "ترايسبس كيبل",
     "muscle": "Triceps",
-    "equipment": "Cable"
-  },
-  {
-    "name": "Overhead Triceps Extension",
-    "muscle": "Triceps",
-    "equipment": "Dumbbell"
+    "muscle_ar": "ترايسبس"
   },
   {
     "name": "Squat",
+    "name_ar": "سكوات",
     "muscle": "Legs",
-    "equipment": "Barbell"
+    "muscle_ar": "رجل"
   },
   {
     "name": "Leg Press",
+    "name_ar": "ليج برس",
     "muscle": "Legs",
-    "equipment": "Machine"
+    "muscle_ar": "رجل"
   },
   {
     "name": "Leg Extension",
+    "name_ar": "فرد رجل",
     "muscle": "Legs",
-    "equipment": "Machine"
+    "muscle_ar": "رجل"
   },
   {
     "name": "Leg Curl",
+    "name_ar": "ثني رجل",
     "muscle": "Legs",
-    "equipment": "Machine"
-  },
-  {
-    "name": "Romanian Deadlift",
-    "muscle": "Legs",
-    "equipment": "Barbell"
-  },
-  {
-    "name": "Calf Raise",
-    "muscle": "Calves",
-    "equipment": "Machine"
+    "muscle_ar": "رجل"
   },
   {
     "name": "Plank",
+    "name_ar": "بلانك",
     "muscle": "Core",
-    "equipment": "Bodyweight"
-  },
-  {
-    "name": "Crunch",
-    "muscle": "Core",
-    "equipment": "Bodyweight"
-  },
-  {
-    "name": "Hanging Leg Raise",
-    "muscle": "Core",
-    "equipment": "Bodyweight"
-  },
-  {
-    "name": "Lunges",
-    "muscle": "Legs",
-    "equipment": "Dumbbell"
+    "muscle_ar": "بطن"
   }
 ]

@@ -9,19 +9,16 @@ class DatabaseService {
 
   Future<Database> get database async {
     if (_db != null) return _db!;
-    final dbPath = await getDatabasesPath();
+    final dir = await getDatabasesPath();
     _db = await openDatabase(
-      p.join(dbPath, 'fitmate_ai.db'),
+      p.join(dir, 'fitmate_ai.db'),
       version: 1,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE workouts(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
-            exercise TEXT NOT NULL,
-            reps INTEGER NOT NULL,
-            weight REAL NOT NULL,
-            media_title TEXT,
+            date TEXT NOT NULL, exercise TEXT NOT NULL, reps INTEGER NOT NULL,
+            weight REAL NOT NULL, media_title TEXT,
             media_minutes INTEGER NOT NULL DEFAULT 0,
             duration_minutes INTEGER NOT NULL DEFAULT 0
           )

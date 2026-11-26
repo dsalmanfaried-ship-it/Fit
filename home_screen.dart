@@ -1,7 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import '../app_state.dart';
 import '../models/workout.dart';
 import '../services/database_service.dart';
+import '../services/online_service.dart';
 import '../services/insights_service.dart';
 import 'workout_screen.dart';
 
@@ -14,12 +16,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<Workout> workouts = [];
   bool loading = true;
+  bool syncing = false;
+  String? syncMessage;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     final data = await DatabaseService.instance.getWorkouts();
@@ -27,120 +28,185 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() { workouts = data; loading = false; });
   }
 
-  double get totalVolume =>
-      workouts.fold(0, (sum, w) => sum + w.reps * w.weight);
-  double get bestWeight => workouts.isEmpty
-      ? 0 : workouts.map((w) => w.weight).reduce((a, b) => a > b ? a : b);
+  double get volume => workouts.fold(0, (s, w) => s + w.reps * w.weight);
+  double get best => workouts.isEmpty ? 0 : workouts.map((w) => w.weight).reduce((a,b) => a > b ? a : b);
 
-  List<FlSpot> get chartSpots {
-    final sorted = [...workouts]..sort((a, b) => a.date.compareTo(b.date));
-    final byDay = <String, double>{};
+  List<FlSpot> get spots {
+    final sorted = [...workouts]..sort((a,b) => a.date.compareTo(b.date));
+    final map = <String,double>{};
     for (final w in sorted) {
-      final key = '${w.date.year}-${w.date.month}-${w.date.day}';
-      byDay[key] = (byDay[key] ?? 0) + w.reps * w.weight;
+      final k = '${w.date.year}-${w.date.month}-${w.date.day}';
+      map[k] = (map[k] ?? 0) + w.reps*w.weight;
     }
-    final values = byDay.values.toList();
-    if (values.isEmpty) return const [FlSpot(0, 0)];
-    return List.generate(values.length, (i) => FlSpot(i.toDouble(), values[i]));
+    final values = map.values.toList();
+    return values.isEmpty ? const [FlSpot(0,0)] :
+      List.generate(values.length, (i) => FlSpot(i.toDouble(), values[i]));
   }
 
   Future<void> _openWorkout() async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkoutScreen()));
+    await Navigator.push(context, PageRouteBuilder(
+      pageBuilder: (_, animation, secondary) => const WorkoutScreen(),
+      transitionsBuilder: (_, animation, secondary, child) =>
+        FadeTransition(opacity: animation, child: SlideTransition(
+          position: Tween(begin: const Offset(0, .04), end: Offset.zero)
+            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          child: child)),
+      transitionDuration: const Duration(milliseconds: 320),
+    ));
     _load();
+  }
+
+  Future<void> _sync() async {
+    setState(() { syncing = true; syncMessage = null; });
+    final ok = await OnlineService().syncWorkouts(workouts);
+    if (!mounted) return;
+    setState(() {
+      syncing = false;
+      syncMessage = ok
+        ? AppState.instance.t('تم رفع البيانات أونلاين بنجاح', 'Data synced online')
+        : AppState.instance.t('المزامنة مش متوصلة. راجع إعدادات السيرفر في README.', 'Online sync is not configured or server is unavailable.');
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final app = AppState.instance;
     return Scaffold(
-      appBar: AppBar(title: const Text('FitMate AI 💪')),
+      appBar: AppBar(
+        title: const Text('FitMate AI 💪'),
+        actions: [
+          IconButton(
+            tooltip: app.t('تغيير اللغة', 'Change language'),
+            onPressed: app.toggleLanguage,
+            icon: const Icon(Icons.translate),
+          ),
+          IconButton(
+            tooltip: app.t('مزامنة أونلاين', 'Sync online'),
+            onPressed: syncing ? null : _sync,
+            icon: syncing
+              ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2))
+              : const Icon(Icons.cloud_sync_outlined),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openWorkout,
         icon: const Icon(Icons.add),
-        label: const Text('سجّل تمرين'),
+        label: Text(app.t('سجّل تمرين', 'Log workout')),
       ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                children: [
-                  Text('أهلاً بيك! جاهز لتمرين جديد؟',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Row(children: [
-                    Expanded(child: _statCard('المجموعات', '${workouts.length}', Icons.fitness_center)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _statCard('أعلى وزن', '${bestWeight.toStringAsFixed(1)} kg', Icons.trending_up)),
-                  ]),
-                  const SizedBox(height: 10),
-                  _statCard('حجم التدريب الكلي', '${totalVolume.toStringAsFixed(0)} kg × reps', Icons.bolt),
-                  const SizedBox(height: 18),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Text('تطور حجم التدريب', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 18),
-                        SizedBox(height: 190, child: LineChart(LineChartData(
-                          gridData: const FlGridData(show: true),
-                          titlesData: const FlTitlesData(
-                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          ),
-                          borderData: FlBorderData(show: false),
-                          lineBarsData: [LineChartBarData(
-                            spots: chartSpots,
-                            isCurved: true,
-                            barWidth: 3,
-                            dotData: const FlDotData(show: true),
-                          )],
-                        ))),
-                      ]),
+      body: loading ? const Center(child:CircularProgressIndicator()) :
+        RefreshIndicator(
+          onRefresh: _load,
+          child: LayoutBuilder(builder: (context, constraints) {
+            final wide = constraints.maxWidth > 650;
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 900),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16,12,16,100),
+                  children: [
+                    AnimatedOpacity(
+                      opacity: 1, duration: const Duration(milliseconds:500),
+                      child: Text(app.t('يلا نتمرّن! 💪', 'Ready to train? 💪'),
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.bold)),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  Card(child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      const Text('مساعد FitMate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-                      const SizedBox(height: 8),
-                      Text(InsightsService.summary(workouts)),
+                    const SizedBox(height:16),
+                    if (wide) Row(children: [
+                      Expanded(child:_stat(app.t('المجموعات','Sets'), '${workouts.length}', Icons.fitness_center)),
+                      const SizedBox(width:12),
+                      Expanded(child:_stat(app.t('أعلى وزن','Best weight'), '${best.toStringAsFixed(1)} kg', Icons.trending_up)),
+                      const SizedBox(width:12),
+                      Expanded(child:_stat(app.t('حجم التدريب','Training volume'), volume.toStringAsFixed(0), Icons.bolt)),
+                    ]) else Column(children: [
+                      Row(children: [
+                        Expanded(child:_stat(app.t('المجموعات','Sets'), '${workouts.length}', Icons.fitness_center)),
+                        const SizedBox(width:10),
+                        Expanded(child:_stat(app.t('أعلى وزن','Best weight'), '${best.toStringAsFixed(1)} kg', Icons.trending_up)),
+                      ]),
+                      const SizedBox(height:10),
+                      _stat(app.t('حجم التدريب الكلي','Total training volume'), '${volume.toStringAsFixed(0)} kg × reps', Icons.bolt),
                     ]),
-                  )),
-                  const SizedBox(height: 16),
-                  const Text('آخر المجموعات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  const SizedBox(height: 8),
-                  if (workouts.isEmpty)
-                    const Card(child: Padding(padding: EdgeInsets.all(18), child: Text('لسه مفيش تمارين مسجلة. اضغط «سجّل تمرين» للبدء.')))
-                  else
-                    ...workouts.take(8).map((w) => Card(
-                      child: ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.fitness_center)),
-                        title: Text(w.exercise),
-                        subtitle: Text('${w.reps} عدة × ${w.weight} كجم • ${w.date.day}/${w.date.month}/${w.date.year}'),
-                        trailing: w.mediaTitle == null || w.mediaTitle!.isEmpty
-                          ? null : const Icon(Icons.headphones),
+                    const SizedBox(height:14),
+                    if (syncMessage != null) Padding(
+                      padding: const EdgeInsets.only(bottom:12),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds:250),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: Colors.teal.withOpacity(.10),borderRadius:BorderRadius.circular(12)),
+                        child: Text(syncMessage!),
+                      ),
+                    ),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                          Text(app.t('تطور حجم التدريب','Training progress'),
+                            style: const TextStyle(fontSize:17,fontWeight:FontWeight.bold)),
+                          const SizedBox(height:18),
+                          SizedBox(height:190,child:LineChart(LineChartData(
+                            gridData: const FlGridData(show:true),
+                            titlesData: const FlTitlesData(
+                              topTitles: AxisTitles(sideTitles:SideTitles(showTitles:false)),
+                              rightTitles: AxisTitles(sideTitles:SideTitles(showTitles:false)),
+                            ),
+                            borderData:FlBorderData(show:false),
+                            lineBarsData:[LineChartBarData(
+                              spots:spots,isCurved:true,barWidth:3,
+                              dotData:const FlDotData(show:true),
+                              belowBarData:BarAreaData(show:true),
+                            )],
+                          ))),
+                        ]),
+                      ),
+                    ),
+                    const SizedBox(height:14),
+                    Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(
+                      crossAxisAlignment:CrossAxisAlignment.start,children:[
+                        Text(app.t('مساعد FitMate','FitMate Coach'),
+                          style:const TextStyle(fontWeight:FontWeight.bold,fontSize:17)),
+                        const SizedBox(height:8),
+                        Text(InsightsService.summary(workouts, app.isArabic)),
+                      ]))),
+                    const SizedBox(height:18),
+                    Text(app.t('آخر المجموعات','Recent sets'),
+                      style:const TextStyle(fontWeight:FontWeight.bold,fontSize:18)),
+                    const SizedBox(height:8),
+                    if(workouts.isEmpty)
+                      Card(child:Padding(padding:const EdgeInsets.all(18),
+                        child:Text(app.t('لسه مفيش تمارين مسجلة. دوس على «سجّل تمرين» وابدأ.','No workouts yet. Tap “Log workout” to get started.'))))
+                    else ...workouts.take(8).map((w)=>Padding(
+                      padding:const EdgeInsets.only(bottom:8),
+                      child: TweenAnimationBuilder<double>(
+                        tween:Tween(begin:0,end:1),duration:const Duration(milliseconds:350),
+                        builder:(context,v,child)=>Transform.translate(
+                          offset:Offset(0,12*(1-v)),child:Opacity(opacity:v,child:child)),
+                        child:Card(child:ListTile(
+                          leading:const CircleAvatar(child:Icon(Icons.fitness_center)),
+                          title:Text(w.exercise),
+                          subtitle:Text('${w.reps} ${app.t('عدة','reps')} × ${w.weight} kg • ${w.date.day}/${w.date.month}/${w.date.year}'),
+                          trailing:w.mediaTitle==null?null:const Icon(Icons.headphones),
+                        )),
                       ),
                     )),
-                ],
+                  ],
+                ),
               ),
-            ),
+            );
+          }),
+        ),
     );
   }
 
-  Widget _statCard(String title, String value, IconData icon) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(children: [
-        Icon(icon, size: 28),
-        const SizedBox(width: 12),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(color: Colors.black54)),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        ])),
-      ]),
-    ),
+  Widget _stat(String title,String value,IconData icon)=>Card(
+    child:Padding(padding:const EdgeInsets.all(16),child:Row(children:[
+      Icon(icon,size:27),const SizedBox(width:10),
+      Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(title,style:const TextStyle(color:Colors.black54)),
+        const SizedBox(height:4),
+        AnimatedSwitcher(duration:const Duration(milliseconds:250),
+          child:Text(value,key:ValueKey(value),style:const TextStyle(fontWeight:FontWeight.bold,fontSize:18))),
+      ])),
+    ])),
   );
 }

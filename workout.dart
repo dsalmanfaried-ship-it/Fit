@@ -20,14 +20,9 @@ class Workout {
   });
 
   Map<String, Object?> toMap() => {
-    'id': id,
-    'date': date.toIso8601String(),
-    'exercise': exercise,
-    'reps': reps,
-    'weight': weight,
-    'media_title': mediaTitle,
-    'media_minutes': mediaMinutes,
-    'duration_minutes': durationMinutes,
+    'id': id, 'date': date.toIso8601String(), 'exercise': exercise,
+    'reps': reps, 'weight': weight, 'media_title': mediaTitle,
+    'media_minutes': mediaMinutes, 'duration_minutes': durationMinutes,
   };
 
   factory Workout.fromMap(Map<String, Object?> map) => Workout(
