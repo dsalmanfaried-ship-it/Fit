@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app_state.dart';
 import 'screens/home_screen.dart';
+
+const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppState.instance.load();
+  if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
+    await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+  }
   runApp(const FitMateApp());
 }
 
@@ -24,33 +31,17 @@ class FitMateApp extends StatelessWidget {
           supportedLocales: const [Locale('ar'), Locale('en')],
           theme: ThemeData(
             useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF0D9B78),
-              brightness: Brightness.light,
-            ),
+            colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0D9B78)),
             scaffoldBackgroundColor: const Color(0xFFF3F7F6),
             appBarTheme: const AppBarTheme(centerTitle: false),
-            cardTheme: const CardThemeData(
-              elevation: 1,
-              margin: EdgeInsets.zero,
-              color: Colors.white,
-            ),
-            inputDecorationTheme: const InputDecorationTheme(
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(),
-            ),
+            cardTheme: const CardThemeData(elevation: 1, margin: EdgeInsets.zero, color: Colors.white),
+            inputDecorationTheme: const InputDecorationTheme(filled: true, fillColor: Colors.white, border: OutlineInputBorder()),
           ),
           builder: (context, child) => Directionality(
             textDirection: ar ? TextDirection.rtl : TextDirection.ltr,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 280),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              child: KeyedSubtree(
-                key: ValueKey(ar),
-                child: child ?? const SizedBox.shrink(),
-              ),
+              child: KeyedSubtree(key: ValueKey(ar), child: child ?? const SizedBox.shrink()),
             ),
           ),
           home: const HomeScreen(),

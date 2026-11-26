@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../models/workout.dart';
 import '../services/database_service.dart';
-import '../services/online_service.dart';
+import '../services/supabase_service.dart';
+import 'account_screen.dart';
 import '../services/insights_service.dart';
 import 'workout_screen.dart';
 
@@ -23,9 +24,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
-    final data = await DatabaseService.instance.getWorkouts();
-    if (!mounted) return;
-    setState(() { workouts = data; loading = false; });
+    try {
+      final data = await DatabaseService.instance.getWorkouts();
+      if (!mounted) return;
+      setState(() { workouts = data; loading = false; });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() { workouts = []; loading = false; });
+    }
   }
 
   double get volume => workouts.fold(0, (s, w) => s + w.reps * w.weight);
@@ -56,16 +62,41 @@ class _HomeScreenState extends State<HomeScreen> {
     _load();
   }
 
+
   Future<void> _sync() async {
+    final supabase = SupabaseService.instance;
+    if (!supabase.configured) {
+      setState(() => syncMessage = AppState.instance.t(
+        'لسه محتاج تضيف بيانات مشروع Supabase وتشغّل التطبيق بالمفاتيح.',
+        'Add your Supabase project settings and launch with the required keys first.',
+      ));
+      return;
+    }
+    if (!supabase.isSignedIn) {
+      final signedIn = await Navigator.push<bool>(context,
+        MaterialPageRoute(builder: (_) => const AccountScreen()));
+      if (signedIn != true || !mounted) return;
+    }
     setState(() { syncing = true; syncMessage = null; });
-    final ok = await OnlineService().syncWorkouts(workouts);
-    if (!mounted) return;
-    setState(() {
-      syncing = false;
-      syncMessage = ok
-        ? AppState.instance.t('تم رفع البيانات أونلاين بنجاح', 'Data synced online')
-        : AppState.instance.t('المزامنة مش متوصلة. راجع إعدادات السيرفر في README.', 'Online sync is not configured or server is unavailable.');
-    });
+    try {
+      final service = SupabaseService.instance;
+      final uploaded = await service.syncWorkouts(workouts);
+      final cloudRows = await service.fetchCloudWorkouts();
+      final imported = await DatabaseService.instance.importCloudWorkouts(cloudRows);
+      final refreshed = await DatabaseService.instance.getWorkouts();
+      if (!mounted) return;
+      setState(() {
+        workouts = refreshed;
+        syncing = false;
+        syncMessage = AppState.instance.t(
+          'المزامنة تمت: رفع $uploaded سجل، واسترجاع $imported سجل جديد.',
+          'Sync complete: uploaded $uploaded records and restored $imported new records.',
+        );
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { syncing = false; syncMessage = e.toString().replaceFirst('Exception: ',''); });
+    }
   }
 
   @override
@@ -79,6 +110,19 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: app.t('تغيير اللغة', 'Change language'),
             onPressed: app.toggleLanguage,
             icon: const Icon(Icons.translate),
+          ),
+          IconButton(
+            tooltip: app.t('الحساب', 'Account'),
+            onPressed: () async {
+              if (SupabaseService.instance.configured && SupabaseService.instance.isSignedIn) {
+                await SupabaseService.instance.signOut();
+                if (mounted) setState(() => syncMessage = app.t('تم تسجيل الخروج.', 'Signed out.'));
+              } else {
+                await Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountScreen()));
+                if (mounted) setState(() {});
+              }
+            },
+            icon: const Icon(Icons.account_circle_outlined),
           ),
           IconButton(
             tooltip: app.t('مزامنة أونلاين', 'Sync online'),
