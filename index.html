@@ -1,45 +1,16 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
+  <base href="$FLUTTER_BASE_HREF">
   <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="FitMate AI - مساعدك الذكي للياقة البدنية">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#101b16">
+  <meta name="theme-color" content="#0D9B78">
   <title>FitMate AI</title>
-  <base href="/Fit/">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; display: grid; place-items: center;
-      padding: 24px; background: #101b16; color: #fff;
-      font-family: Arial, sans-serif; text-align: center;
-    }
-    main { max-width: 520px; }
-    h1 { color: #8ee6ad; margin-bottom: 12px; }
-    p { line-height: 1.8; color: #d5e1d9; }
-    #status { margin-top: 24px; padding: 16px; border: 1px solid #496354; border-radius: 12px; }
-  </style>
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <main>
-    <h1>FitMate AI</h1>
-    <p>مساعدك الذكي للياقة البدنية</p>
-    <div id="status">جاري تحميل التطبيق...</div>
-  </main>
-
-  <script>
-    window.addEventListener('error', function () {
-      document.getElementById('status').textContent =
-        'تعذر تحميل ملفات التطبيق. تأكد أن ملفات Flutter Web موجودة مع index.html داخل مجلد النشر.';
-    });
-
-    var bootstrap = document.createElement('script');
-    bootstrap.src = 'flutter_bootstrap.js';
-    bootstrap.async = true;
-    bootstrap.onerror = function () {
-      document.getElementById('status').textContent =
-        'ملف flutter_bootstrap.js غير موجود. هذا الملف وحده لا يكفي لتشغيل التطبيق؛ يجب نشر مجلد build/web كاملًا.';
-    };
-    document.body.appendChild(bootstrap);
-  </script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
