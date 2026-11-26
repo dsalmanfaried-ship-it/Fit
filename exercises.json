@@ -1,0 +1,127 @@
+[
+  {
+    "name": "Bench Press",
+    "muscle": "Chest",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Incline Dumbbell Press",
+    "muscle": "Chest",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Chest Fly",
+    "muscle": "Chest",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Push Up",
+    "muscle": "Chest",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Lat Pulldown",
+    "muscle": "Back",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Seated Cable Row",
+    "muscle": "Back",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Deadlift",
+    "muscle": "Back",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Pull Up",
+    "muscle": "Back",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Shoulder Press",
+    "muscle": "Shoulders",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Lateral Raise",
+    "muscle": "Shoulders",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Face Pull",
+    "muscle": "Shoulders",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Barbell Curl",
+    "muscle": "Biceps",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Hammer Curl",
+    "muscle": "Biceps",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Triceps Pushdown",
+    "muscle": "Triceps",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Overhead Triceps Extension",
+    "muscle": "Triceps",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Squat",
+    "muscle": "Legs",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Leg Press",
+    "muscle": "Legs",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Leg Extension",
+    "muscle": "Legs",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Leg Curl",
+    "muscle": "Legs",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Romanian Deadlift",
+    "muscle": "Legs",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Calf Raise",
+    "muscle": "Calves",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Plank",
+    "muscle": "Core",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Crunch",
+    "muscle": "Core",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Hanging Leg Raise",
+    "muscle": "Core",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Lunges",
+    "muscle": "Legs",
+    "equipment": "Dumbbell"
+  }
+]
