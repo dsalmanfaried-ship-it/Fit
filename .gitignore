@@ -1,8 +1,0 @@
-/build/
-.dart_tool/
-.packages
-.pub/
-.flutter-plugins
-.flutter-plugins-dependencies
-/android/.gradle/
-/ios/Pods/
