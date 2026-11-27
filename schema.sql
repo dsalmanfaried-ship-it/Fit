@@ -16,22 +16,26 @@ create table if not exists public.workouts (
 
 alter table public.workouts enable row level security;
 
+drop policy if exists "Users can read their own workouts" on public.workouts;
 create policy "Users can read their own workouts"
 on public.workouts for select
 to authenticated
 using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own workouts" on public.workouts;
 create policy "Users can insert their own workouts"
 on public.workouts for insert
 to authenticated
 with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own workouts" on public.workouts;
 create policy "Users can update their own workouts"
 on public.workouts for update
 to authenticated
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
+drop policy if exists "Users can delete their own workouts" on public.workouts;
 create policy "Users can delete their own workouts"
 on public.workouts for delete
 to authenticated
