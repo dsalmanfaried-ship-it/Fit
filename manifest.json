@@ -1,9 +1,0 @@
-{
-  "name": "FitMate AI",
-  "short_name": "FitMate",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#f3f7f6",
-  "theme_color": "#0d9b78",
-  "description": "Workout tracking with Arabic and English support"
-}
