@@ -1,0 +1,10 @@
+{
+  "name": "FitMate AI",
+  "short_name": "FitMate",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F3F7F6",
+  "theme_color": "#0D9B78",
+  "description": "FitMate AI workout tracker",
+  "orientation": "portrait-primary"
+}
